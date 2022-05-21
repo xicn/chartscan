@@ -1,19 +1,15 @@
 use std::{env::args_os, fs::File};
+
+// use spotify::SpotifyEntry;
 mod spotify;
 
 pub fn run() -> Result<(), Box<dyn std::error::Error>> {
     match args_os().nth(1) {
         Some(path) => {
             let f = File::open(path)?;
-            let mut csv_rdr = csv::ReaderBuilder::new()
-                .has_headers(false)
-                .delimiter(b'*')
-                .from_reader(f);
+            let v = spotify::from_reader(f)?;
 
-            for rec in csv_rdr.deserialize() {
-                let r: spotify::SpotifyEntry = rec?;
-                println!("{:?}", r);
-            }
+            println!("{:#?}", v);
         }
         None => return Err(From::from("Missing required path to the file")),
     }
