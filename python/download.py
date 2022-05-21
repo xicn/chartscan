@@ -10,7 +10,7 @@ from regions import Regions
 
 
 def get_location(region):
-    return "/Users/xiaojiechen/Project/Parse/SpotifyData/" + region
+    return "/home/ubuntu/project/chartscan/SpotifyData/" + region
 
 
 def range_date(start_date, end_date):
@@ -90,6 +90,10 @@ def write_file(out_put, list_tracks):
                                 info)  # type: ignore
                     elif str == "chart-table-streams":
                         stream = get_info(info, str)
+            if "*" in track:
+                track = "\"" + track + "\""
+            if "*" in art:
+                art = "\"" + art + "\""
             f.write("{}*{}*{}*{}\n".format(pos, track, art, stream))
 
 # This one also bypasses cloudflare
@@ -107,7 +111,7 @@ def get_download(date, region, region_code):
     soup = make_soup(region_code, date)
     lis = get_tracks(soup, True)
     if len(lis) != 200:
-        return print("Error in html file", region, region_code, date)
+        return print("[Error]: in html file", region, region_code, date)
 
     location_dir = get_location(region)
     if path.exists(location_dir) is False:
@@ -115,7 +119,7 @@ def get_download(date, region, region_code):
 
     out_put = location_dir + "/" + date + ".csv"
     write_file(out_put, lis)
-    print("Successful")
+    print("[Success]:", region, region_code, date)
 
 
 def createThread(date, region, region_code):
@@ -132,9 +136,9 @@ if __name__ == "__main__":
     # get_download("2022-05-20", "Italy", "it")
     # get_download("2022-05-20", "Philippines", "ph")
 
-    get_download("2022-05-20", "Thailand", "th")
-    get_download("2022-05-19", "Thailand", "th")
-    get_download("2022-05-18", "Thailand", "th")
+    get_download("2022-05-20", "US", "us")
+    # get_download("2022-05-19", "Thailand", "th")
+    # get_download("2022-05-18", "Thailand", "th")
 
     # threads = []
     # for countries in Regions:
