@@ -1,7 +1,17 @@
 #![allow(dead_code)]
 
 use serde::Deserialize;
-use std::{error::Error, fs::File};
+use std::{error::Error, fs::File, num::NonZeroU8};
+
+const FORMAT: u128 = lexical_core::NumberFormatBuilder::new()
+    .digit_separator(NonZeroU8::new(b','))
+    .required_digits(true)
+    .no_positive_mantissa_sign(true)
+    .no_special(true)
+    .internal_digit_separator(true)
+    .trailing_digit_separator(true)
+    .consecutive_digit_separator(true)
+    .build();
 
 #[derive(Debug, Deserialize, PartialEq)]
 pub struct SpotifyEntry {
@@ -49,9 +59,14 @@ pub fn from_reader(f: File) -> Result<Vec<SpotifyEntry>, Box<dyn std::error::Err
     Ok(res)
 }
 
-fn parse_int(num: &str) -> Result<u64, Box<dyn Error>> {
-    let i: u64 = lexical::parse(num)?;
-    Ok(i)
+fn parse_int(_num: &str) -> Result<u64, Box<dyn Error>> {
+    let options = lexical_core::ParseFloatOptions::builder()
+        .decimal_point(b'.')
+        .build()
+        .unwrap();
+    let res = lexical_core::parse_with_options::<f64, FORMAT>(_num.as_bytes(), &options)?;
+
+    Ok(res as u64)
 }
 
 #[cfg(test)]
@@ -60,6 +75,28 @@ mod tests {
 
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
+
+    #[test]
+    fn lexical_1() {
+        const FORMAT: u128 = lexical_core::NumberFormatBuilder::new()
+            .digit_separator(NonZeroU8::new(b','))
+            .required_digits(true)
+            .no_positive_mantissa_sign(true)
+            .no_special(true)
+            .internal_digit_separator(true)
+            .trailing_digit_separator(true)
+            .consecutive_digit_separator(true)
+            .build();
+
+        let options = lexical_core::ParseFloatOptions::builder()
+            .decimal_point(b'.')
+            .build()
+            .unwrap();
+        assert_eq!(
+            lexical_core::parse_with_options::<f32, FORMAT>("300,100".as_bytes(), &options),
+            Ok(300_100.0 as f32)
+        );
+    }
 
     #[test]
     fn parse_int_1() -> Result<(), Box<dyn Error>> {
