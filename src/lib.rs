@@ -1,18 +1,68 @@
-use std::{env::args_os, fs::File};
+use clap::{Parser, Subcommand};
+use num_format::{Locale, ToFormattedString};
 
-use crate::spotify::SpotifyChart;
+use crate::spotify::parse_int;
 
-// use spotify::SpotifyEntry;
 mod spotify;
 
+#[derive(Parser)]
+#[clap(name = "ChartScan")]
+#[clap(author = "xicnx. <okstrategie@gmail.com>")]
+#[clap(version = "0.0.1")]
+struct Cli {
+    // Subcommand should always be &supplied
+    #[clap(subcommand)]
+    command: Commands,
+}
+
+#[derive(Subcommand)]
+enum Commands {
+    /// Calculate the rank, streams change, and pretty print to console
+    Calc {
+        /// Region code
+        #[clap(long)]
+        code: String,
+
+        /// Previous day rank
+        #[clap(long = "pr")]
+        pr: i16,
+
+        /// Today rank
+        #[clap(long = "tr")]
+        tr: i16,
+
+        /// Previous day rank
+        #[clap(long = "ps")]
+        ps: String,
+
+        /// Today rank
+        #[clap(long = "ts")]
+        ts: String,
+    },
+}
+
 pub fn run() -> Result<(), Box<dyn std::error::Error>> {
-    match args_os().nth(1) {
-        Some(path) => {
-            let f = File::open(path)?;
-            let chart = SpotifyChart::from_reader(f)?;
-            println!("{:#?}", chart);
+    let cli = Cli::parse();
+
+    match cli.command {
+        Commands::Calc {
+            code,
+            pr,
+            tr,
+            ps,
+            ts,
+        } => {
+            let result: i64 = (parse_int(&ts)? - parse_int(&ps)?) as i64;
+            println!("{}:", code);
+            println!(
+                "#{}[{:+}] - {}({}{:+})",
+                tr,
+                pr - tr,
+                ts,
+                if result >= 0 { "+" } else { "" },
+                result.to_formatted_string(&Locale::en)
+            );
         }
-        None => return Err(From::from("Missing required path to the file")),
     }
 
     Ok(())

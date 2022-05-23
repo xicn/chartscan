@@ -8,14 +8,14 @@ use time::{Date, Month};
 
 #[derive(Debug, PartialEq)]
 pub struct SpotifyEntry {
-    rank: u8,
+    rank: i16,
     title: String,
     artist: String,
-    streams: u64,
+    streams: i64,
 }
 
 impl SpotifyEntry {
-    fn new(rank: u8, title: String, artist: String, streams: u64) -> Self {
+    fn new(rank: i16, title: String, artist: String, streams: i64) -> Self {
         SpotifyEntry {
             rank,
             title,
@@ -45,7 +45,7 @@ impl SpotifyChart {
         }
     }
 
-    pub fn from(region: String, code: String, date: String) -> Result<Self, Box<dyn Error>> {
+    fn from(region: String, code: String, date: String) -> Result<Self, Box<dyn Error>> {
         Ok(SpotifyChart {
             region,
             code,
@@ -54,6 +54,7 @@ impl SpotifyChart {
             count: 0,
         })
     }
+
     pub fn from_reader(f: File) -> Result<Self, Box<dyn std::error::Error>> {
         let mut res = Self::new();
         let mut csv_rdr = csv::ReaderBuilder::new()
@@ -69,8 +70,20 @@ impl SpotifyChart {
         }
 
         res.count = res.chart.len() as u8;
-
         Ok(res)
+    }
+
+    pub fn find_by_title(&self, title: &str) -> Option<&SpotifyEntry> {
+        let res: Vec<&SpotifyEntry> = self
+            .chart
+            .iter()
+            .filter(|&x| x.title.to_lowercase().contains(&title.to_lowercase()))
+            .collect();
+        if let Some(&res) = res.get(0) {
+            Some(res)
+        } else {
+            None
+        }
     }
 }
 
@@ -118,7 +131,7 @@ fn match_date(date: &str) -> Result<Option<Date>, Box<dyn Error>> {
     Ok(Some(date?))
 }
 
-type Record = (u8, String, String, String);
+type Record = (i16, String, String, String);
 
 pub fn from_reader(f: File) -> Result<Vec<SpotifyEntry>, Box<dyn std::error::Error>> {
     let mut res = Vec::new();
@@ -136,7 +149,7 @@ pub fn from_reader(f: File) -> Result<Vec<SpotifyEntry>, Box<dyn std::error::Err
     Ok(res)
 }
 
-fn parse_int(num: &str) -> Result<u64, Box<dyn Error>> {
+pub fn parse_int(num: &str) -> Result<i64, Box<dyn Error>> {
     const FORMAT: u128 = lexical_core::NumberFormatBuilder::new()
         .digit_separator(NonZeroU8::new(b','))
         .required_digits(true)
@@ -153,7 +166,7 @@ fn parse_int(num: &str) -> Result<u64, Box<dyn Error>> {
         .unwrap();
     let res = lexical_core::parse_with_options::<f64, FORMAT>(num.as_bytes(), &options)?;
 
-    Ok(res as u64)
+    Ok(res as i64)
 }
 
 #[cfg(test)]
@@ -162,6 +175,48 @@ mod tests {
 
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
+
+    #[test]
+    fn find_title_1() -> Result<(), Box<dyn Error>> {
+        let expected = SpotifyEntry::new(
+            1,
+            "As It Was".to_string(),
+            "Harry Styles".to_string(),
+            2418894,
+        );
+        let f = File::open("/home/ubuntu/project/chartscan/SpotifyData/us/2022-05-22.csv")?;
+        let chart = SpotifyChart::from_reader(f)?;
+        assert_eq!(&expected, chart.find_by_title("As it was").unwrap());
+        Ok(())
+    }
+
+    #[test]
+    fn find_title_2() -> Result<(), Box<dyn Error>> {
+        let expected = SpotifyEntry::new(
+            52,
+            "Cold Heart - PNAU Remix".to_string(),
+            "Elton John, Dua Lipa".to_string(),
+            401106,
+        );
+        let f = File::open("/home/ubuntu/project/chartscan/SpotifyData/us/2022-05-22.csv")?;
+        let chart = SpotifyChart::from_reader(f)?;
+        assert_eq!(&expected, chart.find_by_title("Cold Heart").unwrap());
+        Ok(())
+    }
+
+    #[test]
+    fn find_title_3() -> Result<(), Box<dyn Error>> {
+        let expected = SpotifyEntry::new(
+            200,
+            "Chicken Fried".to_string(),
+            "Zac Brown Band".to_string(),
+            221775,
+        );
+        let f = File::open("/home/ubuntu/project/chartscan/SpotifyData/us/2022-05-22.csv")?;
+        let chart = SpotifyChart::from_reader(f)?;
+        assert_eq!(&expected, chart.find_by_title("Chicken").unwrap());
+        Ok(())
+    }
 
     #[test]
     fn match_path_1() -> Result<(), Box<dyn Error>> {
@@ -268,21 +323,21 @@ mod tests {
 
     #[test]
     fn parse_int_1() -> Result<(), Box<dyn Error>> {
-        let expected: u64 = 10;
+        let expected: i64 = 10;
         assert_eq!(parse_int("10")?, expected);
         Ok(())
     }
 
     #[test]
     fn parse_int_2() -> Result<(), Box<dyn Error>> {
-        let expected: u64 = 10000;
+        let expected: i64 = 10000;
         assert_eq!(parse_int("10,000")?, expected);
         Ok(())
     }
 
     #[test]
     fn parse_int_3() -> Result<(), Box<dyn Error>> {
-        let expected: u64 = 1676272;
+        let expected: i64 = 1676272;
         assert_eq!(parse_int("1,676,272")?, expected);
         Ok(())
     }
