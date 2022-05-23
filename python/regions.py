@@ -43,3 +43,12 @@ class Regions(Enum):
     Chile = "cl"
     Turkey = "tr"
     # SouthKorea = 'kr'
+
+
+index = 0
+for x in Regions:
+    print('"', x.value, '"', sep='', end=" ")
+    print("=>", end=" ")
+    # print('"', x.value, '"', sep='', end=",\n")
+    print('Regions::', str(x.value).upper(), sep='', end=",\n")
+    index = index + 1

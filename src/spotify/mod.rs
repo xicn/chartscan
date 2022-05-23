@@ -1,8 +1,10 @@
 #![allow(dead_code)]
 
+mod regions;
+
 use regex::Regex;
 use std::{error::Error, fs::File, num::NonZeroU8};
-use time::Date;
+use time::{Date, Month};
 
 #[derive(Debug, PartialEq)]
 pub struct SpotifyEntry {
@@ -28,37 +30,61 @@ pub struct SpotifyChart {
     region: String,
     code: String,
     date: Date,
-    chart: [SpotifyEntry; 200],
+    chart: Vec<SpotifyEntry>,
     count: u8,
 }
 
 impl SpotifyChart {
-    // fn new(region: String, code: String, date: String) -> Self {
-    //     SpotifyChart {
-    //         region: (),
-    //         code: (),
-    //         date: (),
-    //         chart: (),
-    //         count: (),
-    //     }
-    // }
+    pub fn new() -> Self {
+        SpotifyChart {
+            region: String::from("Unkown"),
+            code: String::from("Unkown"),
+            date: Date::from_calendar_date(2001, Month::January, 27).unwrap(), // This date should be always valid
+            chart: Vec::new(),
+            count: 0,
+        }
+    }
+
+    pub fn from(region: String, code: String, date: String) -> Result<Self, Box<dyn Error>> {
+        Ok(SpotifyChart {
+            region,
+            code,
+            date: match_date(&date)?.unwrap(),
+            chart: Vec::new(),
+            count: 0,
+        })
+    }
+    pub fn from_reader(f: File) -> Result<Self, Box<dyn std::error::Error>> {
+        let mut res = Self::new();
+        let mut csv_rdr = csv::ReaderBuilder::new()
+            .has_headers(false)
+            .delimiter(b'*')
+            .from_reader(f);
+
+        for rec in csv_rdr.deserialize() {
+            let (rank, title, artist, streams): Record = rec?;
+
+            res.chart
+                .push(SpotifyEntry::new(rank, title, artist, parse_int(&streams)?));
+        }
+
+        res.count = res.chart.len() as u8;
+
+        Ok(res)
+    }
 }
 
-fn match_date(date: &str) -> Option<(i32, u8, u8)> {
+fn match_date(date: &str) -> Result<Option<Date>, Box<dyn Error>> {
     let re = Regex::new(r"(\d{4})-(\d{2})-(\d{2})").unwrap();
     let caps = re.captures(&date).unwrap();
 
-    let year = caps[1].parse::<i32>().unwrap();
-    let month = caps[2].parse::<u8>().unwrap();
-    let day = caps[3].parse::<u8>().unwrap();
+    let year = caps[1].parse::<i32>()?;
+    let month: u8 = caps[2].parse::<u8>()?;
+    let day = caps[3].parse::<u8>()?;
 
-    // let date = Date::from_calendar_date(
-    //     caps[1].parse::<i32>().unwrap(),
-    //     caps[2].parse::<u8>().unwrap(),
-    //     caps[3].parse::<u8>().unwrap(),
-    // );
+    let date = Date::from_calendar_date(year, Month::try_from(month)?, day);
 
-    Some((year, month, day))
+    Ok(Some(date?))
 }
 
 type Record = (u8, String, String, String);
@@ -108,22 +134,22 @@ mod tests {
 
     #[test]
     fn match_date_1() -> Result<(), Box<dyn Error>> {
-        let expected = (2022, 1, 27);
-        assert_eq!(expected, match_date("2022-01-27").unwrap());
+        let expected = Date::from_calendar_date(2022, Month::January, 27)?;
+        assert_eq!(expected, match_date("2022-01-27")?.unwrap());
         Ok(())
     }
 
     #[test]
     fn match_date_2() -> Result<(), Box<dyn Error>> {
-        let expected = (2021, 5, 27);
-        assert_eq!(expected, match_date("2021-05-27").unwrap());
+        let expected = Date::from_calendar_date(2021, Month::May, 27)?;
+        assert_eq!(expected, match_date("2021-05-27")?.unwrap());
         Ok(())
     }
 
     #[test]
     fn match_date_3() -> Result<(), Box<dyn Error>> {
-        let expected = (2018, 9, 1);
-        assert_eq!(expected, match_date("2018-09-01").unwrap());
+        let expected = Date::from_calendar_date(2018, Month::September, 1)?;
+        assert_eq!(expected, match_date("2018-09-01")?.unwrap());
         Ok(())
     }
 
