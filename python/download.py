@@ -5,6 +5,8 @@ import threading
 import time
 import pandas
 import cloudscraper
+import sys
+
 
 from regions import Regions
 
@@ -111,9 +113,11 @@ def get_download(date, region, region_code):
     soup = make_soup(region_code, date)
     lis = get_tracks(soup, True)
     if len(lis) != 200:
+        print("[Error]: in html file", region,
+              region_code, date, file=sys.stderr)
         return print("[Error]: in html file", region, region_code, date)
 
-    location_dir = get_location(region)
+    location_dir = get_location(region_code)
     if path.exists(location_dir) is False:
         os.makedirs(location_dir)
 
@@ -132,17 +136,15 @@ def createThread(date, region, region_code):
 
 start_time = time.time()
 if __name__ == "__main__":
-    # get_download("2022-05-20", "Netherlands", "nl")
-    # get_download("2022-05-20", "Italy", "it")
-    # get_download("2022-05-20", "Philippines", "ph")
+    get_download("2022-05-21", "Spain", "es")
+    get_download("2022-05-22", "Spain", "es")
 
-    get_download("2022-05-20", "US", "us")
-    # get_download("2022-05-19", "Thailand", "th")
-    # get_download("2022-05-18", "Thailand", "th")
+    # get_download("2022-05-22", "France", "fr")
 
     # threads = []
     # for countries in Regions:
-    #     threads.append(createThread("2022-05-20", countries.name, countries.value))
+    #     threads.append(createThread(
+    #         "2022-05-22", countries.name, countries.value))
 
     # for thread in threads:
     #     thread.join()

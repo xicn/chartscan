@@ -37,6 +37,10 @@ pub enum Regions {
     NOTVALID,
 }
 
+pub trait RegionString {
+    fn to_region_string(&self) -> String;
+}
+
 impl From<u8> for Regions {
     fn from(num: u8) -> Self {
         match num {
@@ -121,6 +125,48 @@ impl From<&str> for Regions {
     }
 }
 
+impl RegionString for Regions {
+    fn to_region_string(&self) -> String {
+        match *self {
+            Regions::GLOBAL => String::from("Global"),
+            Regions::US => String::from("US"),
+            Regions::GB => String::from("UK"),
+            Regions::AU => String::from("Australia"),
+            Regions::CA => String::from("Canada"),
+            Regions::FR => String::from("France"),
+            Regions::NL => String::from("Netherlands"),
+            Regions::FI => String::from("Finland"),
+            Regions::NO => String::from("Norway"),
+            Regions::DK => String::from("Denmark"),
+            Regions::SE => String::from("Sweden"),
+            Regions::CH => String::from("Switzerland"),
+            Regions::IE => String::from("Ireland"),
+            Regions::NZ => String::from("NewZealand"),
+            Regions::MY => String::from("Malaysia"),
+            Regions::SG => String::from("Singapore"),
+            Regions::JP => String::from("Japan"),
+            Regions::IN => String::from("India"),
+            Regions::PH => String::from("Philippines"),
+            Regions::ID => String::from("Indonesia"),
+            Regions::DE => String::from("Germany"),
+            Regions::IT => String::from("Italy"),
+            Regions::AT => String::from("Austria"),
+            Regions::BE => String::from("Belgium"),
+            Regions::HU => String::from("Hungary"),
+            Regions::PT => String::from("Portugal"),
+            Regions::ES => String::from("Spain"),
+            Regions::BR => String::from("Brazil"),
+            Regions::CO => String::from("Colombia"),
+            Regions::MX => String::from("Mexico"),
+            Regions::AR => String::from("Argentina"),
+            Regions::PL => String::from("Poland"),
+            Regions::CL => String::from("Chile"),
+            Regions::TR => String::from("Turkey"),
+            Regions::NOTVALID => String::from("Invalid"),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::error::Error;
@@ -163,6 +209,25 @@ mod tests {
     #[test]
     fn from_u8_3() -> Result<(), Box<dyn Error>> {
         assert_eq!(Regions::NOTVALID, From::from(40));
+        Ok(())
+    }
+
+    #[test]
+    fn region_string_1() -> Result<(), Box<dyn Error>> {
+        let actual = Regions::NOTVALID;
+        assert_eq!(actual.to_region_string(), String::from("Invalid"));
+        Ok(())
+    }
+    #[test]
+    fn region_string_2() -> Result<(), Box<dyn Error>> {
+        let actual = Regions::GLOBAL;
+        assert_eq!(actual.to_region_string(), String::from("Global"));
+        Ok(())
+    }
+    #[test]
+    fn region_string_3() -> Result<(), Box<dyn Error>> {
+        let actual = Regions::US;
+        assert_eq!(actual.to_region_string(), String::from("US"));
         Ok(())
     }
 }
