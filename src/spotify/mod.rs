@@ -74,6 +74,37 @@ impl SpotifyChart {
     }
 }
 
+fn match_path(path_name: &str) -> Result<(String, String), Box<dyn Error>> {
+    let re = Regex::new(r"/\w*/\w*/\w*/\w*/\w*/(\w*)/(\w*-\w*-\w*)").unwrap();
+
+    match re.is_match(path_name) {
+        true => match re.captures(path_name) {
+            Some(caps) => Ok((
+                String::from(caps.get(1).unwrap().as_str()),
+                String::from(caps.get(2).unwrap().as_str()),
+            )),
+            None => Err(From::from("Something is wrong with regex!")),
+        },
+        false => Err(From::from(
+            "Can not match the code, please enter a valid path!",
+        )),
+    }
+}
+
+fn match_code(path_name: &str) -> Result<String, Box<dyn Error>> {
+    let re = Regex::new(r"/\w*/\w*/\w*/\w*/\w*/(\w*)/\w*").unwrap();
+
+    match re.is_match(path_name) {
+        true => match re.captures(path_name) {
+            Some(res) => Ok(String::from(&res[1])),
+            None => Err(From::from("Something is wrong with regex!")),
+        },
+        false => Err(From::from(
+            "Can not match the code, please enter a valid path!",
+        )),
+    }
+}
+
 fn match_date(date: &str) -> Result<Option<Date>, Box<dyn Error>> {
     let re = Regex::new(r"(\d{4})-(\d{2})-(\d{2})").unwrap();
     let caps = re.captures(&date).unwrap();
@@ -131,6 +162,66 @@ mod tests {
 
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
+
+    #[test]
+    fn match_path_1() -> Result<(), Box<dyn Error>> {
+        let expected = (String::from("us"), "2022-05-21".to_string());
+        assert_eq!(
+            expected,
+            match_path("/home/ubuntu/project/chartscan/SpotifyData/us/2022-05-21.csv")?
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn match_path_2() -> Result<(), Box<dyn Error>> {
+        let expected = (String::from("global"), "2017-05-21".to_string());
+        assert_eq!(
+            expected,
+            match_path("/home/ubuntu/project/chartscan/SpotifyData/global/2017-05-21.csv")?
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn match_path_3() -> Result<(), Box<dyn Error>> {
+        let expected = (String::from("tl"), "2001-01-27".to_string());
+        assert_eq!(
+            expected,
+            match_path("/home/ubuntu/project/chartscan/SpotifyData/tl/2001-01-27.csv")?
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn match_path_4() -> Result<(), Box<dyn Error>> {
+        assert!(match_path("/home/ubuntu/project/chartscan/SpotifyData/2022-05-21.csv").is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn match_code_1() -> Result<(), Box<dyn Error>> {
+        let expected = String::from("us");
+        assert_eq!(
+            expected,
+            match_code("/home/ubuntu/project/chartscan/SpotifyData/us/2022-05-21.csv")?
+        );
+        Ok(())
+    }
+    #[test]
+    fn match_code_2() -> Result<(), Box<dyn Error>> {
+        let expected = String::from("global");
+        assert_eq!(
+            expected,
+            match_code("/home/ubuntu/project/chartscan/SpotifyData/global/2022-05-21.csv")?
+        );
+        Ok(())
+    }
+    #[test]
+    fn match_code_3() -> Result<(), Box<dyn Error>> {
+        assert!(match_code("/home/ubuntu/project/chartscan/SpotifyData/2022-05-21.csv").is_err());
+        Ok(())
+    }
 
     #[test]
     fn match_date_1() -> Result<(), Box<dyn Error>> {
