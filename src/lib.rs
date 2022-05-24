@@ -64,6 +64,10 @@ enum Commands {
 
         /// One single keyword that can be search in title and artist
         keyword: Option<String>,
+
+        /// Option to decide whther to display gains between two entries
+        #[clap(short, long)]
+        gains: bool,
     },
 }
 
@@ -96,31 +100,35 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             artist,
             all,
             keyword,
+            gains,
         } => {
             // println!("{} {} {:?} {:?}", code, date, title, artist );
 
             let fh = resolve_file_handle(&code, &date)?;
             let chart = SpotifyChart::from_reader(fh)?;
 
-            match (title, artist) {
-                (None, None) => match keyword {
-                    Some(keyword) => match all {
-                        true => println!("{:#?}", chart.find_all_by_keyword(&keyword)),
-                        false => println!("{:#?}", chart.find_by_keyword(&keyword)),
+            match gains {
+                true => todo!(),
+                false => match (title, artist) {
+                    (None, None) => match keyword {
+                        Some(keyword) => match all {
+                            true => println!("{:#?}", chart.find_all_by_keyword(&keyword)),
+                            false => println!("{:#?}", chart.find_by_keyword(&keyword)),
+                        },
+                        None => todo!(), // Everything will be printed
                     },
-                    None => todo!(), // Everything will be printed
-                },
-                (None, Some(artist)) => match all {
-                    true => println!("{:#?}", chart.find_all_by_artist(&artist)),
-                    false => println!("{:#?}", chart.find_by_artist(&artist)),
-                },
-                (Some(title), None) => match all {
-                    true => println!("{:#?}", chart.find_all_by_title(&title)),
-                    false => println!("{:#?}", chart.find_by_title(&title)),
-                },
-                (Some(title), Some(artist)) => match all {
-                    true => println!("{:#?}", chart.find_all_by_title_artist(&title, &artist)),
-                    false => println!("{:#?}", chart.find_by_title_artist(&title, &artist)),
+                    (None, Some(artist)) => match all {
+                        true => println!("{:#?}", chart.find_all_by_artist(&artist)),
+                        false => println!("{:#?}", chart.find_by_artist(&artist)),
+                    },
+                    (Some(title), None) => match all {
+                        true => println!("{:#?}", chart.find_all_by_title(&title)),
+                        false => println!("{:#?}", chart.find_by_title(&title)),
+                    },
+                    (Some(title), Some(artist)) => match all {
+                        true => println!("{:#?}", chart.find_all_by_title_artist(&title, &artist)),
+                        false => println!("{:#?}", chart.find_by_title_artist(&title, &artist)),
+                    },
                 },
             }
         }

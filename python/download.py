@@ -62,6 +62,8 @@ def get_streams(tag_obj, testing=False):
             return "This is not a " + "chart-table-streams" + " tag"
 
 # Get 201 rows that contains the tracks + header information
+
+
 def get_tracks(bs_obj, optional=False):
     list_return = bs_obj.find_all("tr")
     if optional is True:
@@ -134,12 +136,15 @@ def createThread(date, region, region_code):
 
 start_time = time.time()
 if __name__ == "__main__":
-    # get_download("2022-05-21", "Spain", "es")
+    get_download("2022-05-23", "Finland", "fi")
+    get_download("2022-05-23", "Norway", "no")
+    get_download("2022-05-23", "Mexico", "mx")
+    get_download("2022-05-23", "Poland", "pl")
 
     threads = []
     for countries in Regions:
         threads.append(createThread(
-            "2022-05-15", countries.name, countries.value))
+            "2022-05-23", countries.name, countries.value))
 
     for thread in threads:
         thread.join()

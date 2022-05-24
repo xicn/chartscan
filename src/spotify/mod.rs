@@ -321,11 +321,48 @@ fn verify_date(date: &str) -> bool {
     re.is_match(date)
 }
 
+pub fn previous_day(date: &str) -> Result<String, Box<dyn Error>> {
+    if let Some(date) = match_date(date).unwrap() {
+        let previous = date.previous_day().unwrap();
+        Ok(format!(
+            "{}-{:02}-{:02}",
+            previous.year(),
+            previous.month() as u8,
+            previous.day(),
+        ))
+    } else {
+        Err(From::from(format!("Invalid date string: {}", date)))
+    }
+}
 #[cfg(test)]
 mod moretest {
     use super::*;
 
     type MyResult<T> = Result<T, Box<dyn Error>>;
+
+    #[test]
+    fn pre_day_20220520() -> MyResult<()> {
+        assert_eq!("2022-05-19".to_string(), previous_day("2022-05-20")?);
+        Ok(())
+    }
+
+    #[test]
+    fn pre_day_20220521() -> MyResult<()> {
+        assert_eq!("2022-05-20".to_string(), previous_day("2022-05-21")?);
+        Ok(())
+    }
+
+    #[test]
+    fn pre_day_20010127() -> MyResult<()> {
+        assert_eq!("2001-01-26".to_string(), previous_day("2001-01-27")?);
+        Ok(())
+    }
+
+    #[test]
+    fn pre_day_20010107() -> MyResult<()> {
+        assert_eq!("2001-01-06".to_string(), previous_day("2001-01-07")?);
+        Ok(())
+    }
 
     #[test]
     fn verify_date_20001_01_27_invalid() -> MyResult<()> {
