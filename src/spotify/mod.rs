@@ -75,6 +75,106 @@ impl SpotifyChart {
         Ok(res)
     }
 
+    pub fn find_by_title_artist(&self, title: &str, artist: &str) -> Option<&SpotifyEntry> {
+        let res: Vec<&SpotifyEntry> = self
+            .chart
+            .iter()
+            .filter(|&entry| {
+                (entry.title.to_lowercase().contains(&title.to_lowercase()))
+                    && (entry.artist.to_lowercase().contains(&artist.to_lowercase()))
+            })
+            .collect();
+        if let Some(&res) = res.get(0) {
+            Some(res)
+        } else {
+            None
+        }
+    }
+
+    pub fn find_all_by_title_artist(
+        &self,
+        title: &str,
+        artist: &str,
+    ) -> Option<Vec<&SpotifyEntry>> {
+        let res: Vec<&SpotifyEntry> = self
+            .chart
+            .iter()
+            .filter(|&entry| {
+                (entry.title.to_lowercase().contains(&title.to_lowercase()))
+                    && (entry.artist.to_lowercase().contains(&artist.to_lowercase()))
+            })
+            .collect();
+        if res.len() > 0 {
+            Some(res)
+        } else {
+            None
+        }
+    }
+
+    pub fn find_by_keyword(&self, keyword: &str) -> Option<&SpotifyEntry> {
+        let res: Vec<&SpotifyEntry> = self
+            .chart
+            .iter()
+            .filter(|&entry| {
+                (entry.title.to_lowercase().contains(&keyword.to_lowercase()))
+                    || (entry
+                        .artist
+                        .to_lowercase()
+                        .contains(&keyword.to_lowercase()))
+            })
+            .collect();
+        if let Some(&res) = res.get(0) {
+            Some(res)
+        } else {
+            None
+        }
+    }
+
+    pub fn find_all_by_keyword(&self, keyword: &str) -> Option<Vec<&SpotifyEntry>> {
+        let res: Vec<&SpotifyEntry> = self
+            .chart
+            .iter()
+            .filter(|&entry| {
+                (entry.title.to_lowercase().contains(&keyword.to_lowercase()))
+                    || (entry
+                        .artist
+                        .to_lowercase()
+                        .contains(&keyword.to_lowercase()))
+            })
+            .collect();
+        if res.len() > 0 {
+            Some(res)
+        } else {
+            None
+        }
+    }
+
+    pub fn find_by_artist(&self, artist: &str) -> Option<&SpotifyEntry> {
+        let res: Vec<&SpotifyEntry> = self
+            .chart
+            .iter()
+            .filter(|&entry| entry.artist.to_lowercase().contains(&artist.to_lowercase()))
+            .collect();
+        if let Some(&res) = res.get(0) {
+            Some(res)
+        } else {
+            None
+        }
+    }
+
+    pub fn find_all_by_artist(&self, artist: &str) -> Option<Vec<&SpotifyEntry>> {
+        let res: Vec<&SpotifyEntry> = self
+            .chart
+            .iter()
+            .filter(|&entry| entry.artist.to_lowercase().contains(&artist.to_lowercase()))
+            .collect();
+        if res.len() > 0 {
+            Some(res)
+        } else {
+            None
+        }
+    }
+
     pub fn find_by_title(&self, title: &str) -> Option<&SpotifyEntry> {
         let res: Vec<&SpotifyEntry> = self
             .chart

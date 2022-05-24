@@ -61,6 +61,9 @@ enum Commands {
         /// Print all result found
         #[clap(long)]
         all: bool,
+
+        /// One single keyword that can be search in title and artist
+        keyword: Option<String>,
     },
 }
 
@@ -92,6 +95,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             title,
             artist,
             all,
+            keyword,
         } => {
             // println!("{} {} {:?} {:?}", code, date, title, artist );
 
@@ -99,14 +103,25 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             let chart = SpotifyChart::from_reader(fh)?;
 
             match (title, artist) {
-                (None, None) => todo!(), // Everything will be printed
-                (None, Some(_artist)) => todo!(),
+                (None, None) => match keyword {
+                    Some(keyword) => match all {
+                        true => println!("{:#?}", chart.find_all_by_keyword(&keyword)),
+                        false => println!("{:#?}", chart.find_by_keyword(&keyword)),
+                    },
+                    None => todo!(), // Everything will be printed
+                },
+                (None, Some(artist)) => match all {
+                    true => println!("{:#?}", chart.find_all_by_artist(&artist)),
+                    false => println!("{:#?}", chart.find_by_artist(&artist)),
+                },
                 (Some(title), None) => match all {
-                    true => println!("{:#?}", chart.find_by_title(&title)),
-
+                    true => println!("{:#?}", chart.find_all_by_title(&title)),
                     false => println!("{:#?}", chart.find_by_title(&title)),
                 },
-                (Some(_title), Some(_artist)) => todo!(),
+                (Some(title), Some(artist)) => match all {
+                    true => println!("{:#?}", chart.find_all_by_title_artist(&title, &artist)),
+                    false => println!("{:#?}", chart.find_by_title_artist(&title, &artist)),
+                },
             }
         }
     }
