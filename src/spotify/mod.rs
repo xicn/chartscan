@@ -6,6 +6,8 @@ use regex::Regex;
 use std::{error::Error, fs::File, num::NonZeroU8};
 use time::{Date, Month};
 
+use self::regions::Regions;
+
 #[derive(Debug, PartialEq)]
 pub struct SpotifyEntry {
     rank: i16,
@@ -77,9 +79,22 @@ impl SpotifyChart {
         let res: Vec<&SpotifyEntry> = self
             .chart
             .iter()
-            .filter(|&x| x.title.to_lowercase().contains(&title.to_lowercase()))
+            .filter(|&entry| entry.title.to_lowercase().contains(&title.to_lowercase()))
             .collect();
         if let Some(&res) = res.get(0) {
+            Some(res)
+        } else {
+            None
+        }
+    }
+
+    pub fn find_all_by_title(&self, title: &str) -> Option<Vec<&SpotifyEntry>> {
+        let res: Vec<&SpotifyEntry> = self
+            .chart
+            .iter()
+            .filter(|&entry| entry.title.to_lowercase().contains(&title.to_lowercase()))
+            .collect();
+        if res.len() > 0 {
             Some(res)
         } else {
             None
@@ -169,229 +184,94 @@ pub fn parse_int(num: &str) -> Result<i64, Box<dyn Error>> {
     Ok(res as i64)
 }
 
-#[cfg(test)]
-mod tests {
-    use std::error::Error;
+// Verify code and date is valid, check whther a file with this code and date exists
+pub fn resolve_file_handle(code: &str, date: &str) -> Result<File, Box<dyn std::error::Error>> {
+    match (verify_code(code), verify_date(date)) {
+        // Only attempt to open the file when both code and date are valid
+        (true, true) => {
+            let path = format!(
+                "/home/ubuntu/project/chartscan/SpotifyData/{}/{}.csv",
+                code, date
+            );
+            match File::open(path.clone()) {
+                Ok(f) => Ok(f),
+                Err(e) => Err(From::from(format!("{}: {}", e, path))),
+            }
+        }
+        // Code is valid but date is invalid
+        (true, false) => Err(From::from(format!("Invalid date: \"{}\"", date))),
+        (false, true) => Err(From::from(format!("Invalid code: \"{}\"", code))),
+        (false, false) => Err(From::from(format!(
+            "Invalid code and date: {} -- {}",
+            code, date
+        ))),
+    }
+}
 
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
+fn verify_code(code: &str) -> bool {
+    // Anything that isn't NOTVALID will be true, else false
+    match Regions::from(code) {
+        Regions::NOTVALID => false,
+        _ => true,
+    }
+}
+
+fn verify_date(date: &str) -> bool {
+    let re = Regex::new(r"^\d{4}-\d{2}-\d{2}$").unwrap();
+    re.is_match(date)
+}
+
+#[cfg(test)]
+mod moretest {
     use super::*;
 
+    type MyResult<T> = Result<T, Box<dyn Error>>;
+
     #[test]
-    fn find_title_1() -> Result<(), Box<dyn Error>> {
-        let expected = SpotifyEntry::new(
-            1,
-            "As It Was".to_string(),
-            "Harry Styles".to_string(),
-            2418894,
-        );
-        let f = File::open("/home/ubuntu/project/chartscan/SpotifyData/us/2022-05-22.csv")?;
-        let chart = SpotifyChart::from_reader(f)?;
-        assert_eq!(&expected, chart.find_by_title("As it was").unwrap());
+    fn verify_date_20001_01_27_invalid() -> MyResult<()> {
+        assert!(!verify_date("20001-01-27"));
         Ok(())
     }
 
     #[test]
-    fn find_title_2() -> Result<(), Box<dyn Error>> {
-        let expected = SpotifyEntry::new(
-            52,
-            "Cold Heart - PNAU Remix".to_string(),
-            "Elton John, Dua Lipa".to_string(),
-            401106,
-        );
-        let f = File::open("/home/ubuntu/project/chartscan/SpotifyData/us/2022-05-22.csv")?;
-        let chart = SpotifyChart::from_reader(f)?;
-        assert_eq!(&expected, chart.find_by_title("Cold Heart").unwrap());
+    fn verify_date_2001_01_270_invalid() -> MyResult<()> {
+        assert!(!verify_date("2001-01-270"));
         Ok(())
     }
 
     #[test]
-    fn find_title_3() -> Result<(), Box<dyn Error>> {
-        let expected = SpotifyEntry::new(
-            200,
-            "Chicken Fried".to_string(),
-            "Zac Brown Band".to_string(),
-            221775,
-        );
-        let f = File::open("/home/ubuntu/project/chartscan/SpotifyData/us/2022-05-22.csv")?;
-        let chart = SpotifyChart::from_reader(f)?;
-        assert_eq!(&expected, chart.find_by_title("Chicken").unwrap());
+    fn verify_date_2001_1_27_invalid() -> MyResult<()> {
+        assert!(!verify_date("2001-1-27"));
         Ok(())
     }
 
     #[test]
-    fn match_path_1() -> Result<(), Box<dyn Error>> {
-        let expected = (String::from("us"), "2022-05-21".to_string());
-        assert_eq!(
-            expected,
-            match_path("/home/ubuntu/project/chartscan/SpotifyData/us/2022-05-21.csv")?
-        );
+    fn verify_date_2001_01_27_valid() -> MyResult<()> {
+        assert!(verify_date("2001-01-27"));
         Ok(())
     }
 
     #[test]
-    fn match_path_2() -> Result<(), Box<dyn Error>> {
-        let expected = (String::from("global"), "2017-05-21".to_string());
-        assert_eq!(
-            expected,
-            match_path("/home/ubuntu/project/chartscan/SpotifyData/global/2017-05-21.csv")?
-        );
+    fn verify_date_2022_05_27_valid() -> MyResult<()> {
+        assert!(verify_date("2022-05-27"));
         Ok(())
     }
 
     #[test]
-    fn match_path_3() -> Result<(), Box<dyn Error>> {
-        let expected = (String::from("tl"), "2001-01-27".to_string());
-        assert_eq!(
-            expected,
-            match_path("/home/ubuntu/project/chartscan/SpotifyData/tl/2001-01-27.csv")?
-        );
+    fn verify_code_us() -> MyResult<()> {
+        assert!(verify_code("us")); // Should retuen True
         Ok(())
     }
 
     #[test]
-    fn match_path_4() -> Result<(), Box<dyn Error>> {
-        assert!(match_path("/home/ubuntu/project/chartscan/SpotifyData/2022-05-21.csv").is_err());
+    fn verify_code_global() -> MyResult<()> {
+        assert!(verify_code("global"));
         Ok(())
     }
 
     #[test]
-    fn match_code_1() -> Result<(), Box<dyn Error>> {
-        let expected = String::from("us");
-        assert_eq!(
-            expected,
-            match_code("/home/ubuntu/project/chartscan/SpotifyData/us/2022-05-21.csv")?
-        );
-        Ok(())
-    }
-    #[test]
-    fn match_code_2() -> Result<(), Box<dyn Error>> {
-        let expected = String::from("global");
-        assert_eq!(
-            expected,
-            match_code("/home/ubuntu/project/chartscan/SpotifyData/global/2022-05-21.csv")?
-        );
-        Ok(())
-    }
-    #[test]
-    fn match_code_3() -> Result<(), Box<dyn Error>> {
-        assert!(match_code("/home/ubuntu/project/chartscan/SpotifyData/2022-05-21.csv").is_err());
-        Ok(())
-    }
-
-    #[test]
-    fn match_date_1() -> Result<(), Box<dyn Error>> {
-        let expected = Date::from_calendar_date(2022, Month::January, 27)?;
-        assert_eq!(expected, match_date("2022-01-27")?.unwrap());
-        Ok(())
-    }
-
-    #[test]
-    fn match_date_2() -> Result<(), Box<dyn Error>> {
-        let expected = Date::from_calendar_date(2021, Month::May, 27)?;
-        assert_eq!(expected, match_date("2021-05-27")?.unwrap());
-        Ok(())
-    }
-
-    #[test]
-    fn match_date_3() -> Result<(), Box<dyn Error>> {
-        let expected = Date::from_calendar_date(2018, Month::September, 1)?;
-        assert_eq!(expected, match_date("2018-09-01")?.unwrap());
-        Ok(())
-    }
-
-    #[test]
-    fn lexical_1() {
-        const FORMAT: u128 = lexical_core::NumberFormatBuilder::new()
-            .digit_separator(NonZeroU8::new(b','))
-            .required_digits(true)
-            .no_positive_mantissa_sign(true)
-            .no_special(true)
-            .internal_digit_separator(true)
-            .trailing_digit_separator(true)
-            .consecutive_digit_separator(true)
-            .build();
-
-        let options = lexical_core::ParseFloatOptions::builder()
-            .decimal_point(b'.')
-            .build()
-            .unwrap();
-        assert_eq!(
-            lexical_core::parse_with_options::<f32, FORMAT>("300,100".as_bytes(), &options),
-            Ok(300_100.0 as f32)
-        );
-    }
-
-    #[test]
-    fn parse_int_1() -> Result<(), Box<dyn Error>> {
-        let expected: i64 = 10;
-        assert_eq!(parse_int("10")?, expected);
-        Ok(())
-    }
-
-    #[test]
-    fn parse_int_2() -> Result<(), Box<dyn Error>> {
-        let expected: i64 = 10000;
-        assert_eq!(parse_int("10,000")?, expected);
-        Ok(())
-    }
-
-    #[test]
-    fn parse_int_3() -> Result<(), Box<dyn Error>> {
-        let expected: i64 = 1676272;
-        assert_eq!(parse_int("1,676,272")?, expected);
-        Ok(())
-    }
-
-    #[test]
-    fn test_from_reader_1_first() -> Result<(), Box<dyn Error>> {
-        let expected = SpotifyEntry {
-            rank: 1,
-            title: "N95".to_string(),
-            artist: "Kendrick Lamar".to_string(),
-            streams: parse_int("1,676,272")?,
-        };
-        let f = File::open("/home/ubuntu/project/chartscan/SpotifyData/US/2022-05-18.csv")?;
-        let vec = from_reader(f)?;
-        let actual = vec.get(0).unwrap();
-        assert_eq!(*actual, expected);
-        Ok(())
-    }
-
-    #[test]
-    fn test_from_reader_1_middle() -> Result<(), Box<dyn Error>> {
-        let expected = SpotifyEntry {
-            rank: 100,
-            title: "Nail Tech".to_string(),
-            artist: "Jack Harlow".to_string(),
-            streams: parse_int("331,769")?,
-        };
-        let f = File::open("/home/ubuntu/project/chartscan/SpotifyData/US/2022-05-18.csv")?;
-        let vec = from_reader(f)?;
-        let actual = vec.get(99).unwrap();
-        assert_eq!(*actual, expected);
-        Ok(())
-    }
-
-    #[test]
-    fn test_from_reader_1_last() -> Result<(), Box<dyn Error>> {
-        let expected = SpotifyEntry {
-            rank: 200,
-            title: "Good Days".to_string(),
-            artist: "SZA".to_string(),
-            streams: parse_int("244,228")?,
-        };
-        let f = File::open("/home/ubuntu/project/chartscan/SpotifyData/US/2022-05-18.csv")?;
-        let vec = from_reader(f)?;
-        let actual = vec.get(199).unwrap();
-        assert_eq!(*actual, expected);
-        Ok(())
-    }
-
-    #[test]
-    fn test_from_reader_2() -> Result<(), Box<dyn Error>> {
-        let f = File::open("/home/ubuntu/project/chartscan/SpotifyData/US/2022-05-18.csv")?;
-        let vec = from_reader(f)?;
-        assert_eq!(200, vec.len());
+    fn verify_code_invalid_oo() -> MyResult<()> {
+        assert!(!verify_code("oo")); // oo is not a valid region code
         Ok(())
     }
 }

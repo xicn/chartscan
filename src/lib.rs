@@ -1,7 +1,8 @@
 use clap::{Parser, Subcommand};
 use num_format::{Locale, ToFormattedString};
+use spotify::resolve_file_handle;
 
-use crate::spotify::parse_int;
+use crate::spotify::{parse_int, SpotifyChart};
 
 mod spotify;
 
@@ -39,6 +40,28 @@ enum Commands {
         #[clap(long = "ts")]
         ts: String,
     },
+    /// Find a song gain
+    Find {
+        /// Region code
+        #[clap(short, long)]
+        code: String,
+
+        /// Date
+        #[clap(short, long)]
+        date: String,
+
+        /// Title keyword
+        #[clap(short, long)]
+        title: Option<String>,
+
+        /// Title keyword
+        #[clap(short, long)]
+        artist: Option<String>,
+
+        /// Print all result found
+        #[clap(long)]
+        all: bool,
+    },
 }
 
 pub fn run() -> Result<(), Box<dyn std::error::Error>> {
@@ -62,6 +85,29 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
                 if result >= 0 { "+" } else { "" },
                 result.to_formatted_string(&Locale::en)
             );
+        }
+        Commands::Find {
+            code,
+            date,
+            title,
+            artist,
+            all,
+        } => {
+            // println!("{} {} {:?} {:?}", code, date, title, artist );
+
+            let fh = resolve_file_handle(&code, &date)?;
+            let chart = SpotifyChart::from_reader(fh)?;
+
+            match (title, artist) {
+                (None, None) => todo!(), // Everything will be printed
+                (None, Some(_artist)) => todo!(),
+                (Some(title), None) => match all {
+                    true => println!("{:#?}", chart.find_by_title(&title)),
+
+                    false => println!("{:#?}", chart.find_by_title(&title)),
+                },
+                (Some(_title), Some(_artist)) => todo!(),
+            }
         }
     }
 
