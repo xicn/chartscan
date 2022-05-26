@@ -1,6 +1,6 @@
 use clap::{Parser, Subcommand};
 use num_format::{Locale, ToFormattedString};
-use spotify::resolve_file_handle;
+use spotify::{previous_day, resolve_file_handle, SpotifyGain};
 
 use crate::spotify::{parse_int, SpotifyChart};
 
@@ -108,7 +108,22 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             let chart = SpotifyChart::from_reader(fh)?;
 
             match gains {
-                true => todo!(),
+                true => {
+                    let yesterday = previous_day(&date)?;
+                    let fh1 = resolve_file_handle(&code, &yesterday)?;
+                    let previous_chart = SpotifyChart::from_reader(fh1)?;
+
+                    match (title, artist) {
+                        (None, None) => todo!(),
+                        (None, Some(_artist)) => todo!(),
+                        (Some(title), None) => {
+                            let sp_gain =
+                                SpotifyGain::song_gain_by_title(chart, previous_chart, &title);
+                            println!("{:#?}", sp_gain);
+                        }
+                        (Some(_title), Some(_artist)) => todo!(),
+                    }
+                }
                 false => match (title, artist) {
                     (None, None) => match keyword {
                         Some(keyword) => match all {

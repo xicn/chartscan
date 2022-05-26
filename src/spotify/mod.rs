@@ -10,18 +10,18 @@ use self::regions::Regions;
 
 #[derive(Debug, PartialEq)]
 pub struct SpotifyEntry {
-    rank: i16,
-    title: String,
-    artist: String,
-    streams: i64,
+    pub rank: i16,
+    pub title: String,
+    pub artist: String,
+    pub streams: i64,
 }
 
 impl SpotifyEntry {
-    fn new(rank: i16, title: String, artist: String, streams: i64) -> Self {
+    fn new(rank: i16, title: &str, artist: &str, streams: i64) -> Self {
         SpotifyEntry {
             rank,
-            title,
-            artist,
+            title: title.to_string(),
+            artist: artist.to_string(),
             streams,
         }
     }
@@ -47,7 +47,11 @@ impl SpotifyChart {
         }
     }
 
-    fn from(region: String, code: String, date: String) -> Result<Self, Box<dyn Error>> {
+    fn spotify_chart_build(
+        region: String,
+        code: String,
+        date: String,
+    ) -> Result<Self, Box<dyn Error>> {
         Ok(SpotifyChart {
             region,
             code,
@@ -67,8 +71,12 @@ impl SpotifyChart {
         for rec in csv_rdr.deserialize() {
             let (rank, title, artist, streams): Record = rec?;
 
-            res.chart
-                .push(SpotifyEntry::new(rank, title, artist, parse_int(&streams)?));
+            res.chart.push(SpotifyEntry::new(
+                rank,
+                &title,
+                &artist,
+                parse_int(&streams)?,
+            ));
         }
 
         res.count = res.chart.len() as u8;
@@ -202,6 +210,87 @@ impl SpotifyChart {
     }
 }
 
+#[derive(Debug, PartialEq)]
+pub struct SpotifyGain {
+    today_rank: i16,
+    yesterday_rank: i16,
+    rank_diff: i16,
+    title: String,
+    artist: String,
+    today_streams: i64,
+    yesterday_streams: i64,
+    streams_diff: i64,
+}
+
+impl SpotifyGain {
+    pub fn new(
+        today_rank: i16,
+        yesterday_rank: i16,
+        title: &str,
+        artist: &str,
+        today_streams: i64,
+        yesterday_streams: i64,
+    ) -> Self {
+        SpotifyGain {
+            today_rank,
+            yesterday_rank,
+            rank_diff: yesterday_rank - today_rank,
+            title: title.to_string(),
+            artist: artist.to_string(),
+            today_streams,
+            yesterday_streams,
+            streams_diff: today_streams - yesterday_streams,
+        }
+    }
+
+    pub fn from_spotify_entry(
+        today: &SpotifyEntry,
+        yesterday: &SpotifyEntry,
+    ) -> Result<SpotifyGain, Box<dyn Error>> {
+        if today.title == yesterday.title && today.artist == yesterday.artist {
+            Ok(SpotifyGain::new(
+                today.rank,
+                yesterday.rank,
+                &today.title,
+                &today.artist,
+                today.streams,
+                yesterday.streams,
+            ))
+        } else {
+            Err(From::from(
+                "Two SpotifyEntries do not have same title and artist.",
+            ))
+        }
+    }
+
+    pub fn song_gain_by_title(
+        chart: SpotifyChart,
+        previous_chart: SpotifyChart,
+        title: &str,
+    ) -> SpotifyGain {
+        let today = chart.find_by_title(title);
+        let yesterday = previous_chart.find_by_title(title);
+        let sp_gain = match (today, yesterday) {
+            (None, None) => SpotifyGain::new(0, 0, title, "Unknown", 0, 0),
+            (None, Some(entry)) => {
+                SpotifyGain::new(0, entry.rank, &entry.title, &entry.artist, 0, entry.streams)
+            }
+            (Some(entry), None) => {
+                SpotifyGain::new(entry.rank, 0, &entry.title, &entry.artist, entry.streams, 0)
+            }
+            (Some(today), Some(yesterday)) => SpotifyGain::new(
+                today.rank,
+                yesterday.rank,
+                &today.title,
+                &today.artist,
+                today.streams,
+                yesterday.streams,
+            ),
+        };
+        sp_gain
+    }
+}
+
 fn match_path(path_name: &str) -> Result<(String, String), Box<dyn Error>> {
     let re = Regex::new(r"/\w*/\w*/\w*/\w*/\w*/(\w*)/(\w*-\w*-\w*)").unwrap();
 
@@ -258,7 +347,12 @@ pub fn from_reader(f: File) -> Result<Vec<SpotifyEntry>, Box<dyn std::error::Err
     for rec in csv_rdr.deserialize() {
         let (rank, title, artist, streams): Record = rec?;
 
-        res.push(SpotifyEntry::new(rank, title, artist, parse_int(&streams)?));
+        res.push(SpotifyEntry::new(
+            rank,
+            &title,
+            &artist,
+            parse_int(&streams)?,
+        ));
     }
 
     Ok(res)
@@ -339,6 +433,56 @@ mod moretest {
     use super::*;
 
     type MyResult<T> = Result<T, Box<dyn Error>>;
+
+    #[test]
+    fn from_spotify_entry_valid_1() -> MyResult<()> {
+        let title = "As It Was";
+        let artist = "Harry Styles";
+        let expected = SpotifyGain::new(
+            1,
+            1,
+            title,
+            artist,
+            parse_int("2,432,888")?,
+            parse_int("2,579,111")?,
+        );
+
+        let en1 = SpotifyEntry::new(1, title, artist, 2432888);
+        let en2 = SpotifyEntry::new(1, title, artist, 2579111);
+
+        assert_eq!(expected, SpotifyGain::from_spotify_entry(&en1, &en2)?);
+        Ok(())
+    }
+
+    #[test]
+    fn from_spotify_entry_valid_2() -> MyResult<()> {
+        let title = "As It Was";
+        let artist = "Harry Styles";
+        let expected = SpotifyGain::new(
+            5,
+            10,
+            title,
+            artist,
+            parse_int("2,432")?,
+            parse_int("2,579")?,
+        );
+
+        let en1 = SpotifyEntry::new(5, title, artist, 2432);
+        let en2 = SpotifyEntry::new(10, title, artist, 2579);
+
+        assert_eq!(expected, SpotifyGain::from_spotify_entry(&en1, &en2)?);
+        Ok(())
+    }
+
+    #[test]
+    fn from_spotify_entry_invalid_1() -> MyResult<()> {
+        Ok(())
+    }
+
+    #[test]
+    fn from_spotify_entry_invalid_2() -> MyResult<()> {
+        Ok(())
+    }
 
     #[test]
     fn pre_day_20220520() -> MyResult<()> {

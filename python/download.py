@@ -113,7 +113,7 @@ def get_download(date, region, region_code):
     soup = make_soup(region_code, date)
     lis = get_tracks(soup, True)
     if len(lis) != 200:
-        print("[Error]: in html file", region,
+        print('get_download("{}", "{}", "{}")'.format(date, region, region_code), region,
               region_code, date, file=sys.stderr)
         return print("[Error]: in html file", region, region_code, date)
 
@@ -136,15 +136,12 @@ def createThread(date, region, region_code):
 
 start_time = time.time()
 if __name__ == "__main__":
-    get_download("2022-05-23", "Finland", "fi")
-    get_download("2022-05-23", "Norway", "no")
-    get_download("2022-05-23", "Mexico", "mx")
-    get_download("2022-05-23", "Poland", "pl")
+    get_download("2022-05-24", "Argentina", "ar")
 
-    threads = []
-    for countries in Regions:
-        threads.append(createThread(
-            "2022-05-23", countries.name, countries.value))
+    # threads = []
+    # for countries in Regions:
+    #     threads.append(createThread(
+    #         "2022-05-24", countries.name, countries.value))
 
-    for thread in threads:
-        thread.join()
+    # for thread in threads:
+    #     thread.join()
