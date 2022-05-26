@@ -1,6 +1,6 @@
 use clap::{Parser, Subcommand};
 use num_format::{Locale, ToFormattedString};
-use spotify::{previous_day, resolve_file_handle, SpotifyGain};
+use spotify::resolve_file_handle;
 
 use crate::spotify::{parse_int, SpotifyChart};
 
@@ -105,26 +105,28 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             // println!("{} {} {:?} {:?}", code, date, title, artist );
 
             let fh = resolve_file_handle(&code, &date)?;
-            let chart = SpotifyChart::from_reader(fh)?;
+            let chart = SpotifyChart::from_reader(fh, &date, &code)?;
             let date_code_str = format!(" date<{}> code<{}>", date, code);
             let format_str = dbg_str(&title, &artist, &keyword);
 
             match gains {
                 true => {
-                    let yesterday = previous_day(&date)?;
-                    let fh1 = resolve_file_handle(&code, &yesterday)?;
-                    let previous_chart = SpotifyChart::from_reader(fh1)?;
+                    let chart = chart.previous_day()?;
+                    println!("{:?}", chart);
 
-                    match (title, artist) {
-                        (None, None) => todo!(),
-                        (None, Some(_artist)) => todo!(),
-                        (Some(title), None) => {
-                            let sp_gain =
-                                SpotifyGain::song_gain_by_title(chart, previous_chart, &title);
-                            println!("{:#?}", sp_gain);
-                        }
-                        (Some(_title), Some(_artist)) => todo!(),
-                    }
+                    // match all {
+                    //     true => todo!(),
+                    //     false => match (title, artist) {
+                    //         (None, None) => todo!(),
+                    //         (None, Some(_artist)) => todo!(),
+                    //         (Some(title), None) => {
+                    //             let sp_gain =
+                    //                 SpotifyGain::song_gain_by_title(chart, previous_chart, &title);
+                    //             println!("{:#?}", sp_gain);
+                    //         }
+                    //         (Some(_title), Some(_artist)) => todo!(),
+                    //     },
+                    // }
                 }
                 false => {
                     match all {

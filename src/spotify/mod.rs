@@ -6,7 +6,8 @@ mod validate;
 use std::{error::Error, fs::File, num::NonZeroU8};
 use time::{Date, Month};
 
-use self::validate::{match_date, verify_date, verify_code};
+use self::regions::RegionString;
+use self::validate::{match_date, verify_code, verify_date};
 
 #[derive(Debug, PartialEq)]
 pub struct SpotifyEntry {
@@ -32,6 +33,7 @@ pub struct SpotifyChart {
     region: String,
     code: String,
     date: Date,
+    date_string: String,
     chart: Vec<SpotifyEntry>,
     count: u8,
 }
@@ -41,6 +43,7 @@ impl SpotifyChart {
         SpotifyChart {
             region: String::from("Unkown"),
             code: String::from("Unkown"),
+            date_string: String::from("Unknown"),
             date: Date::from_calendar_date(2001, Month::January, 27).unwrap(), // This date should be always valid
             chart: Vec::new(),
             count: 0,
@@ -55,13 +58,18 @@ impl SpotifyChart {
         Ok(SpotifyChart {
             region,
             code,
+            date_string: date.to_string(),
             date: match_date(&date)?.unwrap(),
             chart: Vec::new(),
             count: 0,
         })
     }
 
-    pub fn from_reader(f: File) -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn from_reader(
+        f: File,
+        date: &str,
+        code: &str,
+    ) -> Result<Self, Box<dyn std::error::Error>> {
         let mut res = Self::new();
         let mut csv_rdr = csv::ReaderBuilder::new()
             .has_headers(false)
@@ -78,6 +86,11 @@ impl SpotifyChart {
                 parse_int(&streams)?,
             ));
         }
+
+        res.region = regions::Regions::from(code).to_region_string();
+        res.code = code.to_string();
+        res.date_string = date.to_string();
+        res.date = match_date(date)?.unwrap();
 
         res.count = res.chart.len() as u8;
         Ok(res)
@@ -231,6 +244,55 @@ impl SpotifyChart {
     pub fn find_all_by_title(&self, title: &str) -> Option<Vec<&SpotifyEntry>> {
         self.find_all(Some(title), None, None)
     }
+
+    pub fn previous_day(&self) -> Result<SpotifyChart, Box<dyn Error>> {
+        let yesterday = get_previous_day(&self.date_string)?;
+        let fh1 = resolve_file_handle(&self.code, &yesterday)?;
+        let previous_chart = SpotifyChart::from_reader(fh1, &yesterday, &self.code)?;
+        Ok(previous_chart)
+    }
+
+    fn song_gain(
+        &self,
+        previous_chart: &SpotifyChart,
+        title: Option<&str>,
+        artist: Option<&str>,
+        keyword: Option<&str>,
+    ) -> SpotifyGain {
+        let today = self.find(title, artist, keyword);
+        let yesterday = previous_chart.find(title, artist, keyword);
+
+        let title = if title.is_some() {
+            title.unwrap()
+        } else {
+            "Unknown"
+        };
+
+        let artist = if artist.is_some() {
+            artist.unwrap()
+        } else {
+            "Unknown"
+        };
+
+        let sp_gain = match (today, yesterday) {
+            (None, None) => SpotifyGain::new(0, 0, title, artist, 0, 0),
+            (None, Some(entry)) => {
+                SpotifyGain::new(0, entry.rank, &entry.title, &entry.artist, 0, entry.streams)
+            }
+            (Some(entry), None) => {
+                SpotifyGain::new(entry.rank, 0, &entry.title, &entry.artist, entry.streams, 0)
+            }
+            (Some(today), Some(yesterday)) => SpotifyGain::new(
+                today.rank,
+                yesterday.rank,
+                &today.title,
+                &today.artist,
+                today.streams,
+                yesterday.streams,
+            ),
+        };
+        sp_gain
+    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -284,33 +346,6 @@ impl SpotifyGain {
                 "Two SpotifyEntries do not have same title and artist.",
             ))
         }
-    }
-
-    pub fn song_gain_by_title(
-        chart: SpotifyChart,
-        previous_chart: SpotifyChart,
-        title: &str,
-    ) -> SpotifyGain {
-        let today = chart.find_by_title(title);
-        let yesterday = previous_chart.find_by_title(title);
-        let sp_gain = match (today, yesterday) {
-            (None, None) => SpotifyGain::new(0, 0, title, "Unknown", 0, 0),
-            (None, Some(entry)) => {
-                SpotifyGain::new(0, entry.rank, &entry.title, &entry.artist, 0, entry.streams)
-            }
-            (Some(entry), None) => {
-                SpotifyGain::new(entry.rank, 0, &entry.title, &entry.artist, entry.streams, 0)
-            }
-            (Some(today), Some(yesterday)) => SpotifyGain::new(
-                today.rank,
-                yesterday.rank,
-                &today.title,
-                &today.artist,
-                today.streams,
-                yesterday.streams,
-            ),
-        };
-        sp_gain
     }
 }
 
@@ -381,7 +416,7 @@ pub fn resolve_file_handle(code: &str, date: &str) -> Result<File, Box<dyn std::
     }
 }
 
-pub fn previous_day(date: &str) -> Result<String, Box<dyn Error>> {
+pub fn get_previous_day(date: &str) -> Result<String, Box<dyn Error>> {
     if let Some(date) = match_date(date).unwrap() {
         let previous = date.previous_day().unwrap();
         Ok(format!(
@@ -453,25 +488,25 @@ mod moretest {
 
     #[test]
     fn pre_day_20220520() -> MyResult<()> {
-        assert_eq!("2022-05-19".to_string(), previous_day("2022-05-20")?);
+        assert_eq!("2022-05-19".to_string(), get_previous_day("2022-05-20")?);
         Ok(())
     }
 
     #[test]
     fn pre_day_20220521() -> MyResult<()> {
-        assert_eq!("2022-05-20".to_string(), previous_day("2022-05-21")?);
+        assert_eq!("2022-05-20".to_string(), get_previous_day("2022-05-21")?);
         Ok(())
     }
 
     #[test]
     fn pre_day_20010127() -> MyResult<()> {
-        assert_eq!("2001-01-26".to_string(), previous_day("2001-01-27")?);
+        assert_eq!("2001-01-26".to_string(), get_previous_day("2001-01-27")?);
         Ok(())
     }
 
     #[test]
     fn pre_day_20010107() -> MyResult<()> {
-        assert_eq!("2001-01-06".to_string(), previous_day("2001-01-07")?);
+        assert_eq!("2001-01-06".to_string(), get_previous_day("2001-01-07")?);
         Ok(())
     }
 
