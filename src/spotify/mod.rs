@@ -1,12 +1,12 @@
 #![allow(dead_code)]
 
 mod regions;
+mod validate;
 
-use regex::Regex;
 use std::{error::Error, fs::File, num::NonZeroU8};
 use time::{Date, Month};
 
-use self::regions::Regions;
+use self::validate::{match_date, verify_date, verify_code};
 
 #[derive(Debug, PartialEq)]
 pub struct SpotifyEntry {
@@ -314,50 +314,6 @@ impl SpotifyGain {
     }
 }
 
-fn match_path(path_name: &str) -> Result<(String, String), Box<dyn Error>> {
-    let re = Regex::new(r"/\w*/\w*/\w*/\w*/\w*/(\w*)/(\w*-\w*-\w*)").unwrap();
-
-    match re.is_match(path_name) {
-        true => match re.captures(path_name) {
-            Some(caps) => Ok((
-                String::from(caps.get(1).unwrap().as_str()),
-                String::from(caps.get(2).unwrap().as_str()),
-            )),
-            None => Err(From::from("Something is wrong with regex!")),
-        },
-        false => Err(From::from(
-            "Can not match the code, please enter a valid path!",
-        )),
-    }
-}
-
-fn match_code(path_name: &str) -> Result<String, Box<dyn Error>> {
-    let re = Regex::new(r"/\w*/\w*/\w*/\w*/\w*/(\w*)/\w*").unwrap();
-
-    match re.is_match(path_name) {
-        true => match re.captures(path_name) {
-            Some(res) => Ok(String::from(&res[1])),
-            None => Err(From::from("Something is wrong with regex!")),
-        },
-        false => Err(From::from(
-            "Can not match the code, please enter a valid path!",
-        )),
-    }
-}
-
-fn match_date(date: &str) -> Result<Option<Date>, Box<dyn Error>> {
-    let re = Regex::new(r"(\d{4})-(\d{2})-(\d{2})").unwrap();
-    let caps = re.captures(&date).unwrap();
-
-    let year = caps[1].parse::<i32>()?;
-    let month: u8 = caps[2].parse::<u8>()?;
-    let day = caps[3].parse::<u8>()?;
-
-    let date = Date::from_calendar_date(year, Month::try_from(month)?, day);
-
-    Ok(Some(date?))
-}
-
 type Record = (i16, String, String, String);
 
 pub fn from_reader(f: File) -> Result<Vec<SpotifyEntry>, Box<dyn std::error::Error>> {
@@ -425,19 +381,6 @@ pub fn resolve_file_handle(code: &str, date: &str) -> Result<File, Box<dyn std::
     }
 }
 
-fn verify_code(code: &str) -> bool {
-    // Anything that isn't NOTVALID will be true, else false
-    match Regions::from(code) {
-        Regions::NOTVALID => false,
-        _ => true,
-    }
-}
-
-fn verify_date(date: &str) -> bool {
-    let re = Regex::new(r"^\d{4}-\d{2}-\d{2}$").unwrap();
-    re.is_match(date)
-}
-
 pub fn previous_day(date: &str) -> Result<String, Box<dyn Error>> {
     if let Some(date) = match_date(date).unwrap() {
         let previous = date.previous_day().unwrap();
@@ -451,6 +394,7 @@ pub fn previous_day(date: &str) -> Result<String, Box<dyn Error>> {
         Err(From::from(format!("Invalid date string: {}", date)))
     }
 }
+
 #[cfg(test)]
 mod moretest {
     use super::*;
