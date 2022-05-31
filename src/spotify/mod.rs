@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+pub mod find;
 mod regions;
 mod validate;
 
@@ -252,7 +253,13 @@ impl SpotifyChart {
         Ok(previous_chart)
     }
 
-    fn song_gain(
+    pub fn previous_chart(&self, date: &str) -> Result<SpotifyChart, Box<dyn Error>> {
+        let fh1 = resolve_file_handle(&self.code, date)?;
+        let previous_chart = SpotifyChart::from_reader(fh1, &date, &self.code)?;
+        Ok(previous_chart)
+    }
+
+    pub fn song_gain(
         &self,
         previous_chart: &SpotifyChart,
         title: Option<&str>,
@@ -292,6 +299,33 @@ impl SpotifyChart {
             ),
         };
         sp_gain
+    }
+
+    pub fn song_gain_all(
+        &self,
+        previous_chart: &SpotifyChart,
+        title: Option<&str>,
+        artist: Option<&str>,
+        keyword: Option<&str>,
+    ) -> Option<Vec<SpotifyGain>> {
+        let today = self.find_all(title, artist, keyword);
+
+        if let Some(entries) = today {
+            let res = entries
+                .into_iter()
+                .map(|entry| {
+                    self.song_gain(
+                        previous_chart,
+                        Some(&entry.title),
+                        Some(&entry.artist),
+                        None,
+                    )
+                })
+                .collect::<Vec<SpotifyGain>>();
+            Some(res)
+        } else {
+            None
+        }
     }
 }
 

@@ -23,7 +23,7 @@ class Regions(Enum):
     Japan = "jp"
     India = "in"
     Philippines = "ph"
-    # Thailand = 'th'
+    Thailand = 'th'
     Indonesia = "id"
 
     Germany = "de"
@@ -42,7 +42,7 @@ class Regions(Enum):
 
     Chile = "cl"
     Turkey = "tr"
-    # SouthKorea = 'kr'
+    SouthKorea = 'kr'
 
 
 # index = 0
