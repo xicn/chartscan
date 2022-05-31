@@ -34,6 +34,8 @@ pub enum Regions {
     PL,
     CL,
     TR,
+    KR,
+    TH,
     NOTVALID,
 }
 
@@ -78,6 +80,8 @@ impl From<u8> for Regions {
             31 => Regions::PL,
             32 => Regions::CL,
             33 => Regions::TR,
+            34 => Regions::KR,
+            35 => Regions::TH,
             _ => Regions::NOTVALID,
         }
     }
@@ -120,7 +124,53 @@ impl From<&str> for Regions {
             "pl" => Regions::PL,
             "cl" => Regions::CL,
             "tr" => Regions::TR,
+            "kr" => Regions::KR,
+            "th" => Regions::TH,
             _ => Regions::NOTVALID,
+        }
+    }
+}
+
+impl From<Regions> for String {
+    fn from(region: Regions) -> Self {
+        match region {
+            Regions::GLOBAL => String::from("global"),
+            Regions::US => String::from("us"),
+            Regions::GB => String::from("gb"),
+            Regions::AU => String::from("au"),
+            Regions::CA => String::from("ca"),
+            Regions::FR => String::from("fr"),
+            Regions::NL => String::from("nl"),
+            Regions::FI => String::from("fi"),
+            Regions::NO => String::from("no"),
+            Regions::DK => String::from("dk"),
+            Regions::SE => String::from("se"),
+            Regions::CH => String::from("ch"),
+            Regions::IE => String::from("ie"),
+            Regions::NZ => String::from("nz"),
+            Regions::MY => String::from("my"),
+            Regions::SG => String::from("sg"),
+            Regions::JP => String::from("jp"),
+            Regions::IN => String::from("in"),
+            Regions::PH => String::from("ph"),
+            Regions::TH => String::from("th"),
+            Regions::ID => String::from("id"),
+            Regions::DE => String::from("de"),
+            Regions::IT => String::from("it"),
+            Regions::AT => String::from("at"),
+            Regions::BE => String::from("be"),
+            Regions::HU => String::from("hu"),
+            Regions::PT => String::from("pt"),
+            Regions::ES => String::from("es"),
+            Regions::BR => String::from("br"),
+            Regions::CO => String::from("co"),
+            Regions::MX => String::from("mx"),
+            Regions::AR => String::from("ar"),
+            Regions::PL => String::from("pl"),
+            Regions::CL => String::from("cl"),
+            Regions::TR => String::from("tr"),
+            Regions::KR => String::from("kr"),
+            Regions::NOTVALID => String::from("invd"),
         }
     }
 }
@@ -163,7 +213,19 @@ impl RegionString for Regions {
             Regions::CL => String::from("Chile"),
             Regions::TR => String::from("Turkey"),
             Regions::NOTVALID => String::from("Invalid"),
+            Regions::KR => String::from("South Korea"),
+            Regions::TH => String::from("Thailand"),
         }
+    }
+}
+
+impl Regions {
+    pub fn regions_vec() -> Vec<Regions> {
+        let mut to_return = vec![];
+        for i in 0..=35 {
+            to_return.push(From::from(i));
+        }
+        to_return
     }
 }
 
@@ -172,6 +234,12 @@ mod tests {
     use std::error::Error;
 
     use super::*;
+
+    #[test]
+    fn it_workd() {
+        let v = Regions::regions_vec();
+        dbg!(v);
+    }
 
     #[test]
     fn from_str_1() -> Result<(), Box<dyn Error>> {

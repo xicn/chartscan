@@ -1,0 +1,351 @@
+globalSpotifyGain {
+    today_rank: 29,
+    yesterday_rank: 31,
+    rank_diff: 2,
+    title: "Potion (with Dua Lipa & Young Thug)",
+    artist: "Calvin Harris",
+    today_streams: 2016816,
+    yesterday_streams: 1899610,
+    streams_diff: 117206,
+}
+us - Today[2022-05-30] data missing!
+gbSpotifyGain {
+    today_rank: 23,
+    yesterday_rank: 26,
+    rank_diff: 3,
+    title: "Potion (with Dua Lipa & Young Thug)",
+    artist: "Calvin Harris",
+    today_streams: 169255,
+    yesterday_streams: 149538,
+    streams_diff: 19717,
+}
+auSpotifyGain {
+    today_rank: 29,
+    yesterday_rank: 28,
+    rank_diff: -1,
+    title: "Potion (with Dua Lipa & Young Thug)",
+    artist: "Calvin Harris",
+    today_streams: 77638,
+    yesterday_streams: 79015,
+    streams_diff: -1377,
+}
+caSpotifyGain {
+    today_rank: 17,
+    yesterday_rank: 16,
+    rank_diff: -1,
+    title: "Potion (with Dua Lipa & Young Thug)",
+    artist: "Calvin Harris",
+    today_streams: 97897,
+    yesterday_streams: 104575,
+    streams_diff: -6678,
+}
+frSpotifyGain {
+    today_rank: 131,
+    yesterday_rank: 144,
+    rank_diff: 13,
+    title: "Potion (with Dua Lipa & Young Thug)",
+    artist: "Calvin Harris",
+    today_streams: 53169,
+    yesterday_streams: 46847,
+    streams_diff: 6322,
+}
+nlSpotifyGain {
+    today_rank: 64,
+    yesterday_rank: 56,
+    rank_diff: -8,
+    title: "Potion (with Dua Lipa & Young Thug)",
+    artist: "Calvin Harris",
+    today_streams: 47486,
+    yesterday_streams: 42120,
+    streams_diff: 5366,
+}
+fiSpotifyGain {
+    today_rank: 55,
+    yesterday_rank: 56,
+    rank_diff: 1,
+    title: "Potion (with Dua Lipa & Young Thug)",
+    artist: "Calvin Harris",
+    today_streams: 14669,
+    yesterday_streams: 13768,
+    streams_diff: 901,
+}
+noSpotifyGain {
+    today_rank: 29,
+    yesterday_rank: 32,
+    rank_diff: 3,
+    title: "Potion (with Dua Lipa & Young Thug)",
+    artist: "Calvin Harris",
+    today_streams: 34040,
+    yesterday_streams: 27689,
+    streams_diff: 6351,
+}
+dkSpotifyGain {
+    today_rank: 32,
+    yesterday_rank: 34,
+    rank_diff: 2,
+    title: "Potion (with Dua Lipa & Young Thug)",
+    artist: "Calvin Harris",
+    today_streams: 23539,
+    yesterday_streams: 20288,
+    streams_diff: 3251,
+}
+seSpotifyGain {
+    today_rank: 40,
+    yesterday_rank: 43,
+    rank_diff: 3,
+    title: "Potion (with Dua Lipa & Young Thug)",
+    artist: "Calvin Harris",
+    today_streams: 42906,
+    yesterday_streams: 38830,
+    streams_diff: 4076,
+}
+chSpotifyGain {
+    today_rank: 31,
+    yesterday_rank: 29,
+    rank_diff: -2,
+    title: "Potion (with Dua Lipa & Young Thug)",
+    artist: "Calvin Harris",
+    today_streams: 13959,
+    yesterday_streams: 12206,
+    streams_diff: 1753,
+}
+ieSpotifyGain {
+    today_rank: 14,
+    yesterday_rank: 17,
+    rank_diff: 3,
+    title: "Potion (with Dua Lipa & Young Thug)",
+    artist: "Calvin Harris",
+    today_streams: 20596,
+    yesterday_streams: 21248,
+    streams_diff: -652,
+}
+nzSpotifyGain {
+    today_rank: 46,
+    yesterday_rank: 46,
+    rank_diff: 0,
+    title: "Potion (with Dua Lipa & Young Thug)",
+    artist: "Calvin Harris",
+    today_streams: 11316,
+    yesterday_streams: 10810,
+    streams_diff: 506,
+}
+mySpotifyGain {
+    today_rank: 136,
+    yesterday_rank: 0,
+    rank_diff: -136,
+    title: "Potion (with Dua Lipa & Young Thug)",
+    artist: "Calvin Harris",
+    today_streams: 9884,
+    yesterday_streams: 0,
+    streams_diff: 9884,
+}
+sgSpotifyGain {
+    today_rank: 54,
+    yesterday_rank: 82,
+    rank_diff: 28,
+    title: "Potion (with Dua Lipa & Young Thug)",
+    artist: "Calvin Harris",
+    today_streams: 11146,
+    yesterday_streams: 8236,
+    streams_diff: 2910,
+}
+jpSpotifyGain {
+    today_rank: 0,
+    yesterday_rank: 0,
+    rank_diff: 0,
+    title: "Potion",
+    artist: "Unknown",
+    today_streams: 0,
+    yesterday_streams: 0,
+    streams_diff: 0,
+}
+inSpotifyGain {
+    today_rank: 0,
+    yesterday_rank: 0,
+    rank_diff: 0,
+    title: "Potion",
+    artist: "Unknown",
+    today_streams: 0,
+    yesterday_streams: 0,
+    streams_diff: 0,
+}
+phSpotifyGain {
+    today_rank: 139,
+    yesterday_rank: 161,
+    rank_diff: 22,
+    title: "Potion (with Dua Lipa & Young Thug)",
+    artist: "Calvin Harris",
+    today_streams: 44732,
+    yesterday_streams: 38601,
+    streams_diff: 6131,
+}
+idSpotifyGain {
+    today_rank: 0,
+    yesterday_rank: 0,
+    rank_diff: 0,
+    title: "Potion",
+    artist: "Unknown",
+    today_streams: 0,
+    yesterday_streams: 0,
+    streams_diff: 0,
+}
+deSpotifyGain {
+    today_rank: 93,
+    yesterday_rank: 81,
+    rank_diff: -12,
+    title: "Potion (with Dua Lipa & Young Thug)",
+    artist: "Calvin Harris",
+    today_streams: 82289,
+    yesterday_streams: 76633,
+    streams_diff: 5656,
+}
+itSpotifyGain {
+    today_rank: 152,
+    yesterday_rank: 165,
+    rank_diff: 13,
+    title: "Potion (with Dua Lipa & Young Thug)",
+    artist: "Calvin Harris",
+    today_streams: 52859,
+    yesterday_streams: 44583,
+    streams_diff: 8276,
+}
+atSpotifyGain {
+    today_rank: 77,
+    yesterday_rank: 69,
+    rank_diff: -8,
+    title: "Potion (with Dua Lipa & Young Thug)",
+    artist: "Calvin Harris",
+    today_streams: 8055,
+    yesterday_streams: 7444,
+    streams_diff: 611,
+}
+beSpotifyGain {
+    today_rank: 70,
+    yesterday_rank: 65,
+    rank_diff: -5,
+    title: "Potion (with Dua Lipa & Young Thug)",
+    artist: "Calvin Harris",
+    today_streams: 12698,
+    yesterday_streams: 12598,
+    streams_diff: 100,
+}
+huSpotifyGain {
+    today_rank: 55,
+    yesterday_rank: 60,
+    rank_diff: 5,
+    title: "Potion (with Dua Lipa & Young Thug)",
+    artist: "Calvin Harris",
+    today_streams: 7221,
+    yesterday_streams: 5796,
+    streams_diff: 1425,
+}
+ptSpotifyGain {
+    today_rank: 80,
+    yesterday_rank: 90,
+    rank_diff: 10,
+    title: "Potion (with Dua Lipa & Young Thug)",
+    artist: "Calvin Harris",
+    today_streams: 10599,
+    yesterday_streams: 8695,
+    streams_diff: 1904,
+}
+esSpotifyGain {
+    today_rank: 191,
+    yesterday_rank: 0,
+    rank_diff: -191,
+    title: "Potion (with Dua Lipa & Young Thug)",
+    artist: "Calvin Harris",
+    today_streams: 43888,
+    yesterday_streams: 0,
+    streams_diff: 43888,
+}
+brSpotifyGain {
+    today_rank: 0,
+    yesterday_rank: 0,
+    rank_diff: 0,
+    title: "Potion",
+    artist: "Unknown",
+    today_streams: 0,
+    yesterday_streams: 0,
+    streams_diff: 0,
+}
+coSpotifyGain {
+    today_rank: 0,
+    yesterday_rank: 0,
+    rank_diff: 0,
+    title: "Potion",
+    artist: "Unknown",
+    today_streams: 0,
+    yesterday_streams: 0,
+    streams_diff: 0,
+}
+mxSpotifyGain {
+    today_rank: 138,
+    yesterday_rank: 185,
+    rank_diff: 47,
+    title: "Potion (with Dua Lipa & Young Thug)",
+    artist: "Calvin Harris",
+    today_streams: 135890,
+    yesterday_streams: 117582,
+    streams_diff: 18308,
+}
+arSpotifyGain {
+    today_rank: 0,
+    yesterday_rank: 0,
+    rank_diff: 0,
+    title: "Potion",
+    artist: "Unknown",
+    today_streams: 0,
+    yesterday_streams: 0,
+    streams_diff: 0,
+}
+plSpotifyGain {
+    today_rank: 0,
+    yesterday_rank: 0,
+    rank_diff: 0,
+    title: "Potion",
+    artist: "Unknown",
+    today_streams: 0,
+    yesterday_streams: 0,
+    streams_diff: 0,
+}
+clSpotifyGain {
+    today_rank: 0,
+    yesterday_rank: 0,
+    rank_diff: 0,
+    title: "Potion",
+    artist: "Unknown",
+    today_streams: 0,
+    yesterday_streams: 0,
+    streams_diff: 0,
+}
+trSpotifyGain {
+    today_rank: 0,
+    yesterday_rank: 0,
+    rank_diff: 0,
+    title: "Potion",
+    artist: "Unknown",
+    today_streams: 0,
+    yesterday_streams: 0,
+    streams_diff: 0,
+}
+krSpotifyGain {
+    today_rank: 41,
+    yesterday_rank: 39,
+    rank_diff: -2,
+    title: "Potion (with Dua Lipa & Young Thug)",
+    artist: "Calvin Harris",
+    today_streams: 5804,
+    yesterday_streams: 5619,
+    streams_diff: 185,
+}
+thSpotifyGain {
+    today_rank: 164,
+    yesterday_rank: 0,
+    rank_diff: -164,
+    title: "Potion (with Dua Lipa & Young Thug)",
+    artist: "Calvin Harris",
+    today_streams: 10151,
+    yesterday_streams: 0,
+    streams_diff: 10151,
+}

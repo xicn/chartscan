@@ -1,7 +1,8 @@
 use clap::{Parser, Subcommand};
 use num_format::{Locale, ToFormattedString};
+use spotify::SpotifyChart;
 
-use crate::spotify::parse_int;
+use crate::spotify::{parse_int, resolve_file_handle};
 
 mod spotify;
 
@@ -72,6 +73,9 @@ enum Commands {
         #[clap(short, long)]
         previous_date: Option<String>,
     },
+
+    /// Spotify chart
+    Daily {},
 }
 
 pub fn run() -> Result<(), Box<dyn std::error::Error>> {
@@ -115,6 +119,20 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             gains,
             previous_date,
         )?,
+        Commands::Daily {} => {
+            let date = "2022-05-30";
+            for code in spotify::regions::Regions::regions_vec() {
+                let code = &String::from(code);
+                if let Ok(f) = resolve_file_handle(code, date) {
+                    let chart = SpotifyChart::from_reader(f, &date, &code)?;
+                    let previous_chart = chart.previous_day()?;
+                    let res = chart.song_gain(&previous_chart, Some("Potion"), None, None);
+                    println!("{}{:#?}", code, res);
+                } else {
+                    println!("{} - Today[{}] data missing!", code, date);
+                }
+            }
+        }
     }
 
     Ok(())

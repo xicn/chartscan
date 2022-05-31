@@ -45,12 +45,12 @@ class Regions(Enum):
     SouthKorea = 'kr'
 
 
-# index = 0
-# for x in Regions:
+index = 0
+for x in Regions:
 
-#     print('Regions::', str(x.value).upper(), sep='', end=" ")
-#     print("=>", end=" ")
-#     # print('"', x.value, '"', sep='', end=",\n")
-#     print('String::from("', x.name, '")', sep='', end=",\n")
+    print('Regions::', str(x.value).upper(), sep='', end=" ")
+    print("=>", end=" ")
+    # print('"', x.value, '"', sep='', end=",\n")
+    print('String::from("', x.value, '")', sep='', end=",\n")
 
-#     index = index + 1
+    index = index + 1

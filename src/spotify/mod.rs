@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 pub mod find;
-mod regions;
+pub mod regions;
 mod validate;
 
 use std::{error::Error, fs::File, num::NonZeroU8};
