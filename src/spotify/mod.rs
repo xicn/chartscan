@@ -331,14 +331,15 @@ impl SpotifyChart {
 
 #[derive(Debug, PartialEq)]
 pub struct SpotifyGain {
-    today_rank: i16,
-    yesterday_rank: i16,
-    rank_diff: i16,
-    title: String,
-    artist: String,
-    today_streams: i64,
-    yesterday_streams: i64,
-    streams_diff: i64,
+    pub today_rank: i16,
+    pub yesterday_rank: i16,
+    pub rank_diff: i16,
+    pub title: String,
+    pub artist: String,
+    pub today_streams: i64,
+    pub yesterday_streams: i64,
+    pub streams_diff: i64,
+    pub percent_diff: f64,
 }
 
 impl SpotifyGain {
@@ -359,6 +360,7 @@ impl SpotifyGain {
             today_streams,
             yesterday_streams,
             streams_diff: today_streams - yesterday_streams,
+            percent_diff: (today_streams - yesterday_streams) as f64 / yesterday_streams as f64,
         }
     }
 
@@ -380,6 +382,9 @@ impl SpotifyGain {
                 "Two SpotifyEntries do not have same title and artist.",
             ))
         }
+    }
+    pub fn print<T: Fn(&SpotifyGain, String)>(&self, region: String, pt: T) {
+        pt(self, region);
     }
 }
 

@@ -1,8 +1,9 @@
 use clap::{Parser, Subcommand};
 use num_format::{Locale, ToFormattedString};
-use spotify::SpotifyChart;
+use spotify::{SpotifyChart, SpotifyGain};
 
 use crate::spotify::{parse_int, resolve_file_handle};
+use spotify::regions::RegionString;
 
 mod spotify;
 
@@ -121,19 +122,46 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
         )?,
         Commands::Daily {} => {
             let date = "2022-05-30";
+            let mut gains: Vec<(SpotifyGain, String)> = Vec::new();
             for code in spotify::regions::Regions::regions_vec() {
-                let code = &String::from(code);
-                if let Ok(f) = resolve_file_handle(code, date) {
+                let region = code.to_region_string();
+                let code = String::from(code);
+                if let Ok(f) = resolve_file_handle(code.as_str(), date) {
                     let chart = SpotifyChart::from_reader(f, &date, &code)?;
                     let previous_chart = chart.previous_day()?;
                     let res = chart.song_gain(&previous_chart, Some("Potion"), None, None);
-                    println!("{}{:#?}", code, res);
+                    if res.today_rank != 0 {
+                        gains.push((res, region));
+                    }
                 } else {
                     println!("{} - Today[{}] data missing!", code, date);
                 }
             }
+
+            gains
+                .into_iter()
+                .for_each(|(gain, region)| gain.print(region, fn1));
         }
     }
 
     Ok(())
+}
+
+fn fn1(gain: &SpotifyGain, region: String) {
+    println!(
+        "{:11} {:<21} {:3} {:3} [{:+4}] {:>10} {:>10} {:>10} {:>+5.2}%",
+        region,
+        &gain.title[0..21],
+        gain.yesterday_rank,
+        gain.today_rank,
+        gain.rank_diff,
+        gain.today_streams.to_formatted_string(&Locale::en),
+        gain.yesterday_streams.to_formatted_string(&Locale::en),
+        format!(
+            "[{}{}]",
+            if gain.streams_diff >= 0 { "+" } else { "" },
+            gain.streams_diff.to_formatted_string(&Locale::en)
+        ),
+        gain.percent_diff * 100f64
+    );
 }
