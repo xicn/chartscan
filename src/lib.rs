@@ -1,9 +1,7 @@
+#![allow(dead_code)]
 use clap::{Parser, Subcommand};
 use num_format::{Locale, ToFormattedString};
-use spotify::{SpotifyChart, SpotifyGain};
-
-use crate::spotify::{parse_int, resolve_file_handle};
-use spotify::regions::RegionString;
+use spotify::{regions::RegionString, SpotifyChart, SpotifyGain};
 
 mod spotify;
 
@@ -74,9 +72,20 @@ enum Commands {
         #[clap(short, long)]
         previous_date: Option<String>,
     },
-
     /// Spotify chart
-    Daily {},
+    Daily {
+        /// Date
+        #[clap(short, long)]
+        date: String,
+
+        /// Title keyword
+        #[clap(short, long)]
+        title: Option<String>,
+
+        /// Title keyword
+        #[clap(short, long)]
+        artist: Option<String>,
+    },
 }
 
 pub fn run() -> Result<(), Box<dyn std::error::Error>> {
@@ -90,7 +99,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             ps,
             ts,
         } => {
-            let result: i64 = (parse_int(&ts)? - parse_int(&ps)?) as i64;
+            let result: i64 = (spotify::parse_int(&ts)? - spotify::parse_int(&ps)?) as i64;
             println!("{}:", code);
             println!(
                 "#{}[{:+}] - {}({}{:+})",
@@ -120,48 +129,56 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             gains,
             previous_date,
         )?,
-        Commands::Daily {} => {
-            let date = "2022-05-30";
+        Commands::Daily {
+            date,
+            title,
+            artist,
+        } => {
             let mut gains: Vec<(SpotifyGain, String)> = Vec::new();
             for code in spotify::regions::Regions::regions_vec() {
                 let region = code.to_region_string();
                 let code = String::from(code);
-                if let Ok(f) = resolve_file_handle(code.as_str(), date) {
+
+                if let Ok(f) = spotify::resolve_file_handle(code.as_str(), &date) {
                     let chart = SpotifyChart::from_reader(f, &date, &code)?;
-                    let previous_chart = chart.previous_day()?;
-                    let res = chart.song_gain(&previous_chart, Some("Potion"), None, None);
-                    if res.today_rank != 0 {
-                        gains.push((res, region));
+                    if let Ok(previous_chart) = chart.previous_day() {
+                        let gain = match (title.clone(), artist.clone()) {
+                            (None, None) => {
+                                return Err(From::from(
+                                    "Either one of title or artist need to be specified!",
+                                ))
+                            }
+                            (None, Some(artist)) => {
+                                chart.song_gain(&previous_chart, None, Some(&artist), None)
+                            }
+                            (Some(title), None) => {
+                                chart.song_gain(&previous_chart, Some(&title), None, None)
+                            }
+                            (Some(title), Some(artist)) => {
+                                chart.song_gain(&previous_chart, Some(&title), Some(&artist), None)
+                            }
+                        };
+
+                        if gain.today_rank != 0 {
+                            gains.push((gain, region));
+                        } else {
+                            eprintln!("{:#?}", gain);
+                        }
+                    } else {
+                        eprintln!("{} - Previous day[-] data missing!", code);
                     }
                 } else {
-                    println!("{} - Today[{}] data missing!", code, date);
+                    eprintln!("{} - Today[{}] data missing!", code, date);
                 }
             }
 
+            gains.sort_by_key(|(gain, _)| gain.today_streams);
+            gains.reverse();
             gains
                 .into_iter()
-                .for_each(|(gain, region)| gain.print(region, fn1));
+                .for_each(|(gain, region)| gain.print(region, spotify::fmt::style2));
         }
     }
 
     Ok(())
-}
-
-fn fn1(gain: &SpotifyGain, region: String) {
-    println!(
-        "{:11} {:<21} {:3} {:3} [{:+4}] {:>10} {:>10} {:>10} {:>+5.2}%",
-        region,
-        &gain.title[0..21],
-        gain.yesterday_rank,
-        gain.today_rank,
-        gain.rank_diff,
-        gain.today_streams.to_formatted_string(&Locale::en),
-        gain.yesterday_streams.to_formatted_string(&Locale::en),
-        format!(
-            "[{}{}]",
-            if gain.streams_diff >= 0 { "+" } else { "" },
-            gain.streams_diff.to_formatted_string(&Locale::en)
-        ),
-        gain.percent_diff * 100f64
-    );
 }

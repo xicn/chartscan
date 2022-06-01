@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
 pub mod find;
+pub mod fmt;
 pub mod regions;
 mod validate;
 
