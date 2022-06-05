@@ -6,3 +6,6 @@
 /python/out
 /src/bin
 /src/spotify/tests.rs
+/javascript/node_modules
+/javascript/.env
+/javascript/spotify-session.json

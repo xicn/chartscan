@@ -147,4 +147,4 @@ def download_all_regions(date):
 start_time = time.time()
 
 if __name__ == "__main__":
-    download_all_regions("2022-05-30")
+    download_all_regions("2022-06-02")
